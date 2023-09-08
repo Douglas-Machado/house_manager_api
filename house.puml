@@ -1,0 +1,40 @@
+@startuml
+    class User {
+        +uuid id
+        +String full_name
+        +Integer age
+        +uuid house_id
+        +Bool admin
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class House {
+        +uuid id
+        +String name
+        +Decimal total_bills
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class Stock {
+        +uuid id
+        +uuid house_id 
+        +String name
+        +String category
+        +String quantity
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class StockLog {
+        +uuid id
+        +uuid stock_id
+        +Int quantity
+        +datetime created_at 
+    }
+
+    User --> House
+    Stock --> House
+    StockLog --> Stock
+@enduml
