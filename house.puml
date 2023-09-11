@@ -2,6 +2,8 @@
     class User {
         +uuid id
         +String full_name
+        +String email
+        +String password
         +Integer age
         +uuid house_id
         +Bool admin

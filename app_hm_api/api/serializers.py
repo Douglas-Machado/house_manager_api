@@ -11,4 +11,4 @@ class HouseSerializer(ModelSerializer):
 class UserSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'full_name', 'age', 'house_id', 'admin')
+        fields = ('id', 'full_name', 'email', 'age', 'house_id', 'admin')

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password
+from os import getenv
 
 # Create your models here.
 class House(models.Model):
@@ -13,8 +14,8 @@ class House(models.Model):
 class User(models.Model):
     id = models.AutoField(primary_key=True)
     full_name = models.TextField(max_length=256)
-    email = models.TextField(max_length=256)
-    password = models
+    email = models.EmailField(max_length=256, null=False, unique=True)
+    password = models.TextField()
     age = models.IntegerField()
     house_id = models.ForeignKey(House, on_delete=models.CASCADE)
     admin = models.BooleanField()
