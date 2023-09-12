@@ -1,14 +1,8 @@
 from rest_framework.serializers import ModelSerializer
-from ..models import House, User
-
-
-class HouseSerializer(ModelSerializer):
-    class Meta:
-        model = House
-        fields = ('id', 'name', 'total_bills')
+from django.contrib.auth.models import User
 
 
 class UserSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'full_name', 'email', 'age', 'house_id', 'admin')
+        fields = ('id', 'username', 'email')

@@ -1,34 +1,32 @@
+from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.decorators import api_view, authentication_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
-from ..models import House, User
-from .serializers import HouseSerializer, UserSerializer
+from .serializers import UserSerializer
+from django.contrib.auth.models import User
 
-class UserViewSet(ModelViewSet):
+class LoginViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated,]
-    
-    
-    def create(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-        return Response(serializer.data)
 
-# @api_view(["GET"])
-# def get_users(request):
-#     users = User.objects.all()
-#     serializer = UserSerializer(users, many=True)
-#     return Response(serializer.data)
+    def get_permissions(self):
+        # Check the action being performed and return the appropriate permissions
+        if self.action in ('register', 'login'):
+            return [AllowAny()]
+        else:
+            return [IsAuthenticated()]
 
-
-# @api_view(["POST"])
-# def register_user(request):
-#     serializer = UserSerializer(data=request.data)
-#     if serializer.is_valid():
-#         serializer.save()
-#     return Response(serializer.data)
+    @action(detail=False, methods=['post'], url_path="register")
+    def register(self, request):
+        user = User.objects.create_user(
+            username = request.data.get("username"),
+            email=request.data.get("email"),
+            password=request.data.get("password")
+        )
+        if request.data.get("first_name"):
+            user.first_name = request.data.get("first_name")
+        if request.data.get("last_name"):
+            user.last_name = request.data.get("last_name")
+        user.save()
+        return Response(UserSerializer(instance=user).data)
