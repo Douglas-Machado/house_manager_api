@@ -3,47 +3,90 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
-from .serializers import UserSerializer, LoginSerializer
-from django.contrib.auth.models import User
+from .serializers import LoginSerializer, ProfileSerializer, HouseSerializer
+from django.contrib.auth.models import User as AuthUser
+from ..models import Profile, House
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.db import transaction
+
 
 class LoginViewSet(ModelViewSet):
-    queryset = User.objects.all()
+    queryset = Profile.objects.all()
 
-    @action(detail=False, methods=['post'], url_path="register", permission_classes=[AllowAny])
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="register",
+    )
     def register(self, request):
-        user = User.objects.create_user(
-            username = request.data.get("username"),
-            email=request.data.get("email"),
-            password=request.data.get("password")
-        )
-        if request.data.get("first_name"):
-            user.first_name = request.data.get("first_name")
-        if request.data.get("last_name"):
-            user.last_name = request.data.get("last_name")
-        user.save()
-        return Response(UserSerializer(instance=user).data)
+        user = None
 
-    @action(detail=False, methods=['post'], url_path="login", permission_classes=[AllowAny])
+        try:
+            with transaction.atomic():
+                user = AuthUser.objects.create_user(
+                    username=request.data.get("username"),
+                    email=request.data.get("email"),
+                    password=request.data.get("password"),
+                )
+            if request.data.get("first_name"):
+                user.first_name = request.data.get("first_name")
+            if request.data.get("last_name"):
+                user.last_name = request.data.get("last_name")
+            if request.data.get("birth_date"):
+                user.profile.birth_date = request.data.get("birth_date")
+            user.save()
+            return Response(status=status.HTTP_201_CREATED)
+        except Exception as ex:
+            print(ex)
+            return Response({"error": ex.args[1]}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["post"], url_path="login")
     def login(self, request):
         try:
             data = request.data
             serializer = LoginSerializer(data=data)
             if serializer.is_valid():
-                username = serializer.data['username']
-                password = serializer.data['password']
+                username = serializer.data["username"]
+                password = serializer.data["password"]
                 user = authenticate(username=username, password=password)
 
                 if user is None:
-                    return Response({
-                        "message": "Invalid username or password"
-                    }, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(
+                        {"message": "Invalid username or password"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
                 refresh = RefreshToken.for_user(user)
-                return Response({
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token)
-                })
+                return Response(
+                    {"refresh": str(refresh), "access": str(refresh.access_token)}
+                )
         except Exception as ex:
             print(ex)
+
+
+class UserViewSet(ModelViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    @action(detail=False, methods=["put"], url_path="add-house")
+    def add_house(self, request):
+        house_id = request.data.get("house_id")
+        username = request.data.get("username")
+
+        user = AuthUser.objects.get(username=username)
+
+        user.profile.house_id = house_id
+        user.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class HouseViewSet(ModelViewSet):
+    queryset = House.objects.all()
+    serializer_class = HouseSerializer
+    permission_classes = [IsAuthenticated]
+
