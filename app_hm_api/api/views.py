@@ -11,7 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import transaction
 
 
-class LoginViewSet(ModelViewSet):
+class AuthViewSet(ModelViewSet):
     queryset = Profile.objects.all()
 
     @action(
@@ -43,26 +43,26 @@ class LoginViewSet(ModelViewSet):
 
     @action(detail=False, methods=["post"], url_path="login")
     def login(self, request):
-        try:
-            data = request.data
-            serializer = LoginSerializer(data=data)
-            if serializer.is_valid():
-                username = serializer.data["username"]
-                password = serializer.data["password"]
-                user = authenticate(username=username, password=password)
+        username = request.data.get("username")
+        password = request.data.get("password")
+        user = authenticate(username=username, password=password)
 
-                if user is None:
-                    return Response(
-                        {"message": "Invalid username or password"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
+        if user is None:
+            return Response(
+                {"message": "Invalid username or password"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        profile = Profile.objects.get(id=user.id)
 
-                refresh = RefreshToken.for_user(user)
-                return Response(
-                    {"refresh": str(refresh), "access": str(refresh.access_token)}
-                )
-        except Exception as ex:
-            print(ex)
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "user": LoginSerializer(instance=profile).data
+            },
+            status=status.HTTP_200_OK
+        )
 
 
 class UserViewSet(ModelViewSet):
@@ -89,4 +89,3 @@ class HouseViewSet(ModelViewSet):
     queryset = House.objects.all()
     serializer_class = HouseSerializer
     permission_classes = [IsAuthenticated]
-
