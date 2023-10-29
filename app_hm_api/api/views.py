@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
 from .serializers import LoginSerializer, ProfileSerializer, HouseSerializer
-from django.contrib.auth.models import User as AuthUser
+from django.contrib.auth.models import User
 from ..models import Profile, House
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -24,7 +24,7 @@ class AuthViewSet(ModelViewSet):
 
         try:
             with transaction.atomic():
-                user = AuthUser.objects.create_user(
+                user = User.objects.create_user(
                     username=request.data.get("username"),
                     email=request.data.get("email"),
                     password=request.data.get("password"),
@@ -77,7 +77,7 @@ class UserViewSet(ModelViewSet):
         house_id = request.data.get("house_id")
         username = request.data.get("username")
 
-        user = AuthUser.objects.get(username=username)
+        user = User.objects.get(username=username)
 
         user.profile.house_id = house_id
         user.save()
