@@ -1,7 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from .managers import CustomUserManager
+from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.hashers import check_password
+from django.core.exceptions import ValidationError
 
 User._meta.get_field("email")._unique = True
 
@@ -14,25 +17,28 @@ class House(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class Profile(models.Model):
-    id = models.AutoField(primary_key=True)
-    birth_date = models.DateField(null=True, blank=True)
-    house = models.ForeignKey(House, null=True, on_delete=models.CASCADE)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    house_admin = models.BooleanField(null=True)
+class Profile(AbstractBaseUser, PermissionsMixin):
+    username = None
+    first_name = models.CharField(max_length=64)
+    last_name = models.CharField(max_length=64)
+    birth_date = models.DateField()
+    email = models.EmailField(_("email address"), unique=True)
+    house = models.ForeignKey(House, null=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
 
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
+    objects = CustomUserManager()
 
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+    def __str__(self):
+        return self.email
+    
+    def login(self, password: str):
+        if not check_password(password, self.password):
+            raise ValidationError("test")
+        return password
 
 
 # class Stock(models.Model):
