@@ -40,5 +40,12 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class HouseSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = House
+        fields = '__all__'
+
+    def create(self, validated_data):
+        house = House.objects.create(name=validated_data['name'])
+        house.save()
+        return house

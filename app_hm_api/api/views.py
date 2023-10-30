@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.shortcuts import get_object_or_404
 
 
 class AuthViewSet(ModelViewSet):
@@ -54,18 +55,32 @@ class ProfileViewSet(ModelViewSet):
         IsAuthenticated,
     ]
 
-    # @action(detail=False, methods=["put"], url_path="add-house")
-    # def add_house(self, request):
-    #     house_id = request.data.get("house_id")
-    #     username = request.data.get("username")
-
-    #     user.profile.house_id = house_id
-    #     user.save()
-
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 class HouseViewSet(ModelViewSet):
     queryset = House.objects.all()
     serializer_class = serializers.HouseSerializer
     permission_classes = [IsAuthenticated]
+
+    def create(self, request):
+        data = request.data
+        profile_id = data.pop('profile_id')
+
+        # try:
+        profile = get_object_or_404(Profile, id=profile_id)
+        
+        if profile.house:
+            return Response({"error": "User already own a house"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = serializers.HouseSerializer(data=data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+        profile.house_id = serializer.data.get('id')
+        profile.owner = True
+        profile.save()
+        return Response(status=status.HTTP_201_CREATED)
+        # except Exception:
+
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

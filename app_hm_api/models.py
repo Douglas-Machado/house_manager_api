@@ -10,9 +10,8 @@ User._meta.get_field("email")._unique = True
 
 
 class House(models.Model):
-    id = models.AutoField(primary_key=True)
     name = models.TextField(max_length=255)
-    total_bills = models.DecimalField(decimal_places=2, max_digits=7)
+    total_bills = models.DecimalField(decimal_places=2, null=True, max_digits=7)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -24,6 +23,7 @@ class Profile(AbstractBaseUser, PermissionsMixin):
     birth_date = models.DateField()
     email = models.EmailField(_("email address"), unique=True)
     house = models.ForeignKey(House, null=True, on_delete=models.SET_NULL)
+    owner = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
