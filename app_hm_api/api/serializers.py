@@ -1,8 +1,12 @@
 from rest_framework import serializers
 from ..models import Profile, House
+from django.contrib.auth.hashers import make_password
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(min_length=4, max_length=24)
+    first_name = serializers.CharField(min_length=2, max_length=64)
+    last_name = serializers.CharField(min_length=2, max_length=64)
 
     class Meta:
         model = Profile
@@ -40,6 +44,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class HouseSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(min_length=4, max_length=24)
+    name = serializers.CharField(min_length=2, max_length=64)
 
     class Meta:
         model = House
@@ -47,5 +53,6 @@ class HouseSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         house = House.objects.create(name=validated_data['name'])
+        house.password = make_password(validated_data['password'])
         house.save()
         return house

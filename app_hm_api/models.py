@@ -12,6 +12,7 @@ User._meta.get_field("email")._unique = True
 class House(models.Model):
     name = models.TextField(max_length=255)
     total_bills = models.DecimalField(decimal_places=2, null=True, max_digits=7)
+    password = models.CharField(max_length=256)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

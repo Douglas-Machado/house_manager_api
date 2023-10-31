@@ -31,7 +31,7 @@ SECRET_KEY = "django-insecure-&ku!f^*0c1v*(x6w^69g@t3)k2y9gka1*6@czc+=7^5h!xm#j1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost"]
 
 
 # Application definition
@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     "app_hm_api",
 ]
 
-CORS_ALLOWED_ORIGINS = []
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

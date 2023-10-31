@@ -4,12 +4,12 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
 
 
-class AuthViewSet(ModelViewSet):
+class AuthViewSet(ViewSet):
     queryset = Profile.objects.all()
 
     @action(
@@ -47,6 +47,14 @@ class AuthViewSet(ModelViewSet):
         except Exception:
             return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
 
+    @action(detail=False, methods=["post"], url_path="logout")
+    def logout(self, request):
+
+        refresh_token = request.data.get("refresh")
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class ProfileViewSet(ModelViewSet):
     queryset = Profile.objects.all()
@@ -54,6 +62,16 @@ class ProfileViewSet(ModelViewSet):
     permission_classes = [
         IsAuthenticated,
     ]
+
+    @action(detail=True, methods=["patch"], url_path="new-house", url_name="new_house")
+    def new_house(self, request, pk=None):
+        profile = get_object_or_404(Profile, id=pk)
+
+        profile.house_id = request.data.get("house_id")
+        profile.owner = False
+        profile.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class HouseViewSet(ModelViewSet):
@@ -65,9 +83,8 @@ class HouseViewSet(ModelViewSet):
         data = request.data
         profile_id = data.pop('profile_id')
 
-        # try:
         profile = get_object_or_404(Profile, id=profile_id)
-        
+
         if profile.house:
             return Response({"error": "User already own a house"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -80,7 +97,3 @@ class HouseViewSet(ModelViewSet):
         profile.owner = True
         profile.save()
         return Response(status=status.HTTP_201_CREATED)
-        # except Exception:
-
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
