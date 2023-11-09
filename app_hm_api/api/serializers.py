@@ -33,8 +33,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        exclude = ('created_at', 'updated_at', 'groups',
-                   'user_permissions', 'last_login', 'is_superuser')
+        exclude = ('created_at', 'updated_at', 'groups', 'password',
+                   'user_permissions', 'last_login', 'is_superuser', 'id')
 
 
 class ProfileSerializer(serializers.ModelSerializer):
