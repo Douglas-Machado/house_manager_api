@@ -34,7 +34,7 @@ class LoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         exclude = ('created_at', 'updated_at', 'groups', 'password',
-                   'user_permissions', 'last_login', 'is_superuser', 'id')
+                   'user_permissions', 'last_login', 'is_superuser')
 
 
 class ProfileSerializer(serializers.ModelSerializer):

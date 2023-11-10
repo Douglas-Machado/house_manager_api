@@ -4,7 +4,7 @@ from .views import AuthViewSet, ProfileViewSet, HouseViewSet
 
 router = DefaultRouter()
 router.register(r'auth', AuthViewSet)
-router.register(r'profile', ProfileViewSet)
+router.register(r'profiles', ProfileViewSet)
 router.register(r'houses', HouseViewSet)
 
 urlpatterns = [
